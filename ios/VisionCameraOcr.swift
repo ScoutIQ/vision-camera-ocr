@@ -113,14 +113,27 @@ public class OCRFrameProcessorPlugin: NSObject, FrameProcessorPluginBase {
           return nil
         }
 
-        let visionImage = VisionImage(buffer: frame.buffer)
+        /** Create Image from buffer and then create vision image from UI image
+        as creating vision image directly from buffer not working in pod 3.1.0
+        we Had to upgrade pod to work in iOS 14 version
+        TODO: Directly create vision image from buffer
+        **/
+        let imageBuffer = CMSampleBufferGetImageBuffer(frame.buffer)!
+        let ciimage = CIImage(cvPixelBuffer: imageBuffer)   
+        let context = CIContext(options: nil)
+        let cgImage = context.createCGImage(ciimage, from: ciimage.extent)!
+        let image = UIImage(cgImage: cgImage)
+
+        let visionImage = VisionImage(image: image)
+
+        visionImage.orientation = image.imageOrientation
         
         // TODO: Get camera orientation state
-        visionImage.orientation = .up
-        
+        //visionImage.orientation = .right
+        let latinOptions = TextRecognizerOptions()
         var result: Text
         do {
-          result = try TextRecognizer.textRecognizer()
+          result = try TextRecognizer.textRecognizer(options:latinOptions)
             .results(in: visionImage)
         } catch let error {
           print("Failed to recognize text with error: \(error.localizedDescription).")

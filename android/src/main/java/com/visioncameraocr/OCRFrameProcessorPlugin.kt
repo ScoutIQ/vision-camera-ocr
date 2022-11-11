@@ -38,8 +38,9 @@ class OCRFrameProcessorPlugin: FrameProcessorPlugin("scanOCR") {
         val lineArray = WritableNativeArray()
 
         for (line in lines) {
+            val elementsSize = getElementArray(line.elements).size()
+            println("Echo Line ||||| $elementsSize")
             val lineMap = WritableNativeMap()
-
             lineMap.putString("text", line.text)
             lineMap.putArray("recognizedLanguages", getRecognizedLanguages(line.recognizedLanguage))
             lineMap.putArray("cornerPoints", line.cornerPoints?.let { getCornerPoints(it) })
@@ -60,6 +61,7 @@ class OCRFrameProcessorPlugin: FrameProcessorPlugin("scanOCR") {
             elementMap.putString("text", element.text)
             elementMap.putArray("cornerPoints", element.cornerPoints?.let { getCornerPoints(it) })
             elementMap.putMap("frame", getFrame(element.boundingBox))
+            elementArray.pushMap(elementMap)
         }
         return elementArray
     }
